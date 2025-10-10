@@ -54,21 +54,23 @@ export default function CTASection() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <motion.button
+            <motion.a
+              href="#playground"
               className="px-10 py-5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-primary-500/50 transition-all duration-300"
               whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(14, 165, 233, 0.7)' }}
               whileTap={{ scale: 0.95 }}
             >
               Get Started Free
-            </motion.button>
+            </motion.a>
 
-            <motion.button
+            <motion.a
+              href="mailto:sales@aivoicebridge.com?subject=Schedule Demo Request&body=Hi, I'm interested in scheduling a demo of VoiceBridge AI."
               className="px-10 py-5 glass-morphism text-white rounded-xl font-bold text-lg hover:bg-white/10 transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               Schedule Demo
-            </motion.button>
+            </motion.a>
           </motion.div>
 
           <motion.div

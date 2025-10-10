@@ -12,10 +12,10 @@ export default function Footer() {
     ],
     Company: [
       { name: 'About', href: '#' },
-      { name: 'Contact', href: 'mailto:contact@voicebridgeai.com' },
+      { name: 'Contact', href: 'mailto:contact@aivoicebridge.com' },
     ],
     Resources: [
-      { name: 'Support', href: 'mailto:support@voicebridgeai.com' },
+      { name: 'Support', href: 'mailto:support@aivoicebridge.com' },
       { name: 'GitHub', href: 'https://github.com/bgash22/voicebridge-ai-website' },
     ],
     Legal: [
