@@ -1,0 +1,455 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { useInView } from 'framer-motion'
+
+interface Message {
+  role: 'user' | 'ai'
+  text: string
+  timestamp: Date
+}
+
+export default function VoicePlayground() {
+  const [isConnected, setIsConnected] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [conversation, setConversation] = useState<Message[]>([])
+  const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | null>(null)
+  const [error, setError] = useState<string>('')
+
+  const wsRef = useRef<WebSocket | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioQueueRef = useRef<AudioBufferSourceNode[]>([])
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+
+  // Connect to Deepgram Agent API
+  const connectToAgent = async () => {
+    try {
+      setError('')
+      console.log('[VoicePlayground] Connecting to agent...')
+
+      // Call Next.js API route to get WebSocket URL
+      const response = await fetch('/api/agent/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceType })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to connect')
+      }
+
+      const { wsUrl } = await response.json()
+      console.log('[VoicePlayground] WebSocket URL received')
+
+      // Connect to Deepgram Agent API
+      const ws = new WebSocket(wsUrl)
+
+      ws.onopen = async () => {
+        console.log('[VoicePlayground] Connected to agent')
+        setIsConnected(true)
+
+        // Load and send agent configuration
+        const configResponse = await fetch('/api/agent/config')
+        const config = await configResponse.json()
+
+        console.log('[VoicePlayground] Sending config:', config)
+        ws.send(JSON.stringify(config))
+      }
+
+      ws.onmessage = (event) => {
+        handleAgentMessage(event.data)
+      }
+
+      ws.onerror = (error) => {
+        console.error('[VoicePlayground] WebSocket error:', error)
+        setError('Connection error. Please try again.')
+        setIsConnected(false)
+      }
+
+      ws.onclose = () => {
+        console.log('[VoicePlayground] Disconnected from agent')
+        setIsConnected(false)
+      }
+
+      wsRef.current = ws
+    } catch (error) {
+      console.error('[VoicePlayground] Failed to connect:', error)
+      setError(error instanceof Error ? error.message : 'Failed to connect to agent')
+      setIsConnected(false)
+    }
+  }
+
+  // Handle messages from agent
+  const handleAgentMessage = async (data: string | Blob) => {
+    if (typeof data === 'string') {
+      try {
+        const message = JSON.parse(data)
+        console.log('[VoicePlayground] Received message:', message.type)
+
+        // Handle different message types
+        switch (message.type) {
+          case 'Transcript':
+          case 'UserTranscript':
+            // User speech transcript
+            if (message.is_final || message.speech_final) {
+              console.log('[VoicePlayground] User said:', message.text)
+              setConversation(prev => [...prev, {
+                role: 'user',
+                text: message.text,
+                timestamp: new Date()
+              }])
+            }
+            break
+
+          case 'AgentResponse':
+          case 'AgentThinking':
+            // AI response text
+            if (message.text) {
+              console.log('[VoicePlayground] AI said:', message.text)
+              setConversation(prev => [...prev, {
+                role: 'ai',
+                text: message.text,
+                timestamp: new Date()
+              }])
+            }
+            break
+
+          case 'FunctionCallRequest':
+            // Agent is calling a function (pharmacy/DHL)
+            console.log('[VoicePlayground] Function call:', message.functions)
+            break
+
+          case 'Welcome':
+          case 'Greeting':
+            // Initial greeting from agent
+            if (message.text) {
+              setConversation(prev => [...prev, {
+                role: 'ai',
+                text: message.text,
+                timestamp: new Date()
+              }])
+            }
+            break
+
+          case 'Error':
+            console.error('[VoicePlayground] Agent error:', message.error)
+            setError(message.error || 'Agent encountered an error')
+            break
+        }
+      } catch (err) {
+        console.error('[VoicePlayground] Failed to parse message:', err)
+      }
+    } else {
+      // Binary audio data from agent
+      console.log('[VoicePlayground] Received audio chunk:', data.size, 'bytes')
+      await playAudioChunk(data)
+    }
+  }
+
+  // Start recording user voice
+  const startRecording = async () => {
+    try {
+      console.log('[VoicePlayground] Starting recording...')
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true
+        }
+      })
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      })
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          // Send audio to agent
+          console.log('[VoicePlayground] Sending audio chunk:', event.data.size, 'bytes')
+          wsRef.current.send(event.data)
+        }
+      }
+
+      mediaRecorder.start(100) // Send chunks every 100ms
+      mediaRecorderRef.current = mediaRecorder
+      setIsRecording(true)
+      console.log('[VoicePlayground] Recording started')
+    } catch (error) {
+      console.error('[VoicePlayground] Failed to start recording:', error)
+      setError('Microphone access denied. Please allow microphone access and try again.')
+    }
+  }
+
+  // Stop recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      console.log('[VoicePlayground] Stopping recording...')
+      mediaRecorderRef.current.stop()
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
+      setIsRecording(false)
+      console.log('[VoicePlayground] Recording stopped')
+    }
+  }
+
+  // Play audio chunk from agent
+  const playAudioChunk = async (audioBlob: Blob) => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext({ sampleRate: 24000 })
+      }
+
+      const arrayBuffer = await audioBlob.arrayBuffer()
+      const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer)
+
+      const source = audioContextRef.current.createBufferSource()
+      source.buffer = audioBuffer
+      source.connect(audioContextRef.current.destination)
+      source.start()
+
+      audioQueueRef.current.push(source)
+
+      // Clean up finished sources
+      source.onended = () => {
+        const index = audioQueueRef.current.indexOf(source)
+        if (index > -1) {
+          audioQueueRef.current.splice(index, 1)
+        }
+      }
+    } catch (err) {
+      console.error('[VoicePlayground] Failed to play audio:', err)
+    }
+  }
+
+  // Disconnect and reset
+  const disconnect = () => {
+    if (wsRef.current) {
+      wsRef.current.close()
+      wsRef.current = null
+    }
+    if (mediaRecorderRef.current) {
+      stopRecording()
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+    }
+    setIsConnected(false)
+    setServiceType(null)
+    setConversation([])
+    setError('')
+  }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) wsRef.current.close()
+      if (mediaRecorderRef.current) stopRecording()
+      if (audioContextRef.current) audioContextRef.current.close()
+    }
+  }, [])
+
+  // Auto-connect when service is selected
+  useEffect(() => {
+    if (serviceType && !isConnected) {
+      connectToAgent()
+    }
+  }, [serviceType])
+
+  return (
+    <section
+      id="playground"
+      ref={ref}
+      className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black via-gray-900 to-black relative overflow-hidden"
+    >
+      {/* Background Effect */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary-500 to-accent-500 rounded-full blur-3xl" />
+      </div>
+
+      <div className="max-w-5xl mx-auto relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-gradient">
+            Try It Live
+          </h2>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            Experience real AI voice interaction. Choose a service and start talking.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="glass-morphism rounded-3xl p-8 max-w-3xl mx-auto"
+        >
+          {/* Error Display */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-xl text-red-200"
+            >
+              ⚠️ {error}
+            </motion.div>
+          )}
+
+          {/* Service Selection */}
+          {!serviceType && (
+            <div className="text-center space-y-6">
+              <h3 className="text-2xl font-bold text-white mb-6">Choose a Service</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setServiceType('pharmacy')}
+                  className="p-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl hover:shadow-primary-500/50 transition-all"
+                >
+                  <div className="text-4xl mb-2">💊</div>
+                  Pharmacy Services
+                  <div className="text-sm opacity-80 mt-2">Drug info, orders, and more</div>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setServiceType('dhl')}
+                  className="p-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl hover:shadow-accent-500/50 transition-all"
+                >
+                  <div className="text-4xl mb-2">📦</div>
+                  DHL Tracking
+                  <div className="text-sm opacity-80 mt-2">Track packages and shipments</div>
+                </motion.button>
+              </div>
+            </div>
+          )}
+
+          {/* Voice Interface */}
+          {serviceType && (
+            <>
+              {/* Service Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl">
+                    {serviceType === 'pharmacy' ? '💊' : '📦'}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">
+                      {serviceType === 'pharmacy' ? 'Pharmacy Services' : 'DHL Tracking'}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      {isConnected ? (
+                        <span className="text-green-400">● Connected</span>
+                      ) : (
+                        <span className="text-yellow-400">● Connecting...</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={disconnect}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition-all"
+                >
+                  Change Service
+                </motion.button>
+              </div>
+
+              {/* Chat Display */}
+              <div className="bg-black/30 rounded-2xl p-6 mb-6 h-96 overflow-y-auto">
+                {conversation.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <div className="text-6xl mb-4">🎤</div>
+                      <p className="text-lg">
+                        {isConnected
+                          ? 'Click the microphone to start talking...'
+                          : 'Connecting to agent...'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {conversation.map((msg, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: msg.role === 'user' ? 50 : -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                            msg.role === 'user'
+                              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'
+                              : 'bg-gray-800 text-gray-200'
+                          }`}
+                        >
+                          {msg.text}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Voice Controls */}
+              <div className="flex flex-col items-center gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={!isConnected}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl transition-all shadow-lg ${
+                    isRecording
+                      ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/50'
+                      : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:shadow-xl shadow-primary-500/50'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isRecording ? '⏹️' : '🎤'}
+                </motion.button>
+
+                <div className="text-gray-400 text-center">
+                  {!isConnected && 'Connecting to agent...'}
+                  {isConnected && !isRecording && 'Click microphone to talk'}
+                  {isRecording && (
+                    <span className="text-red-400 font-semibold animate-pulse">
+                      ● Recording...
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Voice Visualizer */}
+              <div className="mt-6 flex items-center justify-center gap-1">
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-1 bg-gradient-to-t from-primary-500 to-accent-500 rounded-full"
+                    animate={{
+                      height: isRecording ? [8, 24, 8] : 8,
+                    }}
+                    transition={{
+                      duration: 0.5,
+                      repeat: isRecording ? Infinity : 0,
+                      delay: i * 0.05,
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </motion.div>
+      </div>
+    </section>
+  )
+}

@@ -51,13 +51,14 @@ The main page (`app/page.tsx`) assembles these components in order.
 
 ### Styling System
 - Custom Tailwind theme with brand colors defined in `tailwind.config.ts`
-  - `primary`: Blue tones (cyan-based)
-  - `accent`: Purple/pink tones
+  - `primary`: Cyan/turquoise tones (matching VB logo - #06b6d4 base)
+  - `accent`: Teal tones for complementary highlights (#14b8a6 base)
 - Custom utility classes in `app/globals.css`:
   - `.text-gradient` - Gradient text effect
   - `.glow-effect` - Drop shadow glow
   - `.glass-morphism` - Frosted glass background
 - Custom animations defined in Tailwind config (float, glow, slide-up, fade-in)
+- Logo: `public/logo.png` - VB logo with transparent background (also available as `logo.jpg`)
 
 ### State Management
 - Client components use React hooks (useState, useRef)
@@ -103,16 +104,50 @@ The `Hero3D.tsx` component is currently simplified (using gradient background). 
 - Mobile-first approach with Tailwind breakpoints (sm, md, lg)
 - Test on various screen sizes as components are visually complex
 
+## Deployment
+
+### Git & GitHub
+- Repository: https://github.com/bgash22/voicebridge-ai-website
+- GitHub account: bgash22
+- Main branch: `main`
+- GitHub CLI authenticated and ready to use
+
+### Vercel (Production)
+- Live URL: https://voicebridge-m5nuewcc5-bader-alshehris-projects.vercel.app
+- Dashboard: https://vercel.com/bader-alshehris-projects/voicebridge-ai
+- Vercel CLI installed and authenticated
+- Auto-deploys on push to main branch
+- Connected to GitHub repository
+
+### Deployment Commands
+```bash
+# Deploy to production
+vercel --prod
+
+# Check deployment status
+vercel inspect
+
+# View logs
+vercel logs
+```
+
 ## Development Notes
 
 ### Known Issues
 - Hero3D component is currently simplified (3D background disabled)
 - AIPlayground uses mock responses, not connected to real AI API
 
+### Recent Changes
+- Fixed CSS errors in `app/globals.css` (removed invalid Tailwind classes)
+- Added VB logo (`public/logo.png` with transparent background)
+- Updated color theme to cyan/teal to match brand logo
+- Deployed to Vercel and connected to GitHub
+
 ### Future Considerations
 - OpenAI API integration for live AI responses (env var: `OPENAI_API_KEY`)
 - Restore full Three.js 3D implementation in Hero3D
 - Add user authentication flows with Supabase
+- Consider custom domain (e.g., voicebridge.ai)
 
 ### Performance
 - Next.js handles code splitting automatically

@@ -30,6 +30,7 @@ export default function Footer() {
                 alt="VoiceBridge AI Logo"
                 width={50}
                 height={50}
+                style={{ width: 'auto', height: 'auto' }}
                 className="object-contain"
               />
               <span className="text-white font-bold text-xl">VoiceBridge AI</span>
