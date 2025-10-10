@@ -104,13 +104,74 @@ The `Hero3D.tsx` component is currently simplified (using gradient background). 
 - Mobile-first approach with Tailwind breakpoints (sm, md, lg)
 - Test on various screen sizes as components are visually complex
 
-## Deployment
+## Version Control & Deployment
+
+### Versioning Strategy
+
+**We use Semantic Versioning (SemVer)**: `v{MAJOR}.{MINOR}.{PATCH}`
+
+- **MAJOR** (v2.0.0): Breaking changes, complete redesigns
+- **MINOR** (v1.1.0): New features, non-breaking changes
+- **PATCH** (v1.1.1): Bug fixes, small improvements
+
+**Current Version**: `v1.1.0`
+
+**Version History**:
+- `v1.1.0` - Fixed voice recording audio capture issue
+- `v1.0.0` - Initial VoiceBridge AI landing page
+
+See `VERSION.md` for complete version history.
+
+### Creating New Versions
+
+**IMPORTANT**: Always create a new version tag for any changes:
+
+```bash
+# 1. Make changes and commit
+git add .
+git commit -m "Your change description
+
+🤖 Generated with Claude Code
+Authored-By: Eng. Bader Alshehri"
+
+# 2. Create version tag
+# For bug fixes (patch):
+git tag -a v1.1.1 -m "v1.1.1 - Bug fix description"
+
+# For new features (minor):
+git tag -a v1.2.0 -m "v1.2.0 - New feature description"
+
+# For breaking changes (major):
+git tag -a v2.0.0 -m "v2.0.0 - Breaking change description"
+
+# 3. Push commit and tags
+git push origin main
+git push origin --tags
+
+# 4. Update VERSION.md with new entry
+```
+
+### Rollback to Previous Version
+
+If changes don't work as intended:
+
+```bash
+# View all versions
+git tag -l
+
+# Rollback to previous version
+git checkout v1.0.0
+
+# Or create a rollback branch
+git checkout -b rollback-to-v1.0.0 v1.0.0
+```
 
 ### Git & GitHub
 - Repository: https://github.com/bgash22/voicebridge-ai-website
 - GitHub account: bgash22
 - Main branch: `main`
 - GitHub CLI authenticated and ready to use
+- **Always use version tags** for tracking changes
 
 ### Vercel (Production)
 - Live URL: https://voicebridge-m5nuewcc5-bader-alshehris-projects.vercel.app
