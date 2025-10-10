@@ -12,9 +12,87 @@ We use **Semantic Versioning** (SemVer) for this project:
 
 ## Current Version
 
-**Latest**: `v1.1.0` - Fixed voice recording audio capture issue
+**Latest**: `v1.1.5` - Fixed voice transcription audio level detection
 
 ## Version History
+
+### v1.1.5 (2025-10-10)
+**Type**: Patch - Bug Fix
+
+**Changes**:
+- ✅ Fixed "Transcription failed" errors due to audio level detection issues
+- ✅ Normalized RMS audio levels (* 100) for better threshold detection
+- ✅ Added minimum recording duration check (0.5 seconds)
+- ✅ Improved audio level thresholds (1.0 minimum, 5.0 recommended)
+- ✅ Enhanced real-time audio feedback with 🔴/🟡/🟢 indicators
+- ✅ Updated visual indicator thresholds from 1/10 to 5/15
+- ✅ Added helpful messages during recording ("Move closer to microphone!")
+- ✅ Better error messages for audio validation failures
+
+**Commit**: `d830643`
+**Author**: Eng. Bader Alshehri
+**Files Changed**: 1 file (43 insertions, 6 deletions)
+
+**Key Files**:
+- `components/SimpleVoicePlayground.tsx` (lines 95-120, 182-235, 775-807)
+
+---
+
+### v1.1.4 (2025-10-10)
+**Type**: Patch - UI Update
+
+**Changes**:
+- ✅ Changed "Watch Demo" to "Schedule Demo" in HeroSection
+- ✅ Improved button text consistency across components
+
+**Files Changed**:
+- `components/HeroSection.tsx`
+
+---
+
+### v1.1.3 (2025-10-10)
+**Type**: Patch - Link Fixes
+
+**Changes**:
+- ✅ Fixed CTA buttons to link to playground and sales email
+- ✅ Updated all email addresses to aivoicebridge.com domain
+- ✅ Added pre-filled email subjects and bodies
+
+**Files Changed**:
+- `components/CTASection.tsx`
+- `components/HeroSection.tsx`
+
+---
+
+### v1.1.2 (2025-10-10)
+**Type**: Patch - Link Fixes
+
+**Changes**:
+- ✅ Fixed broken navigation links
+- ✅ Updated footer links to functional destinations
+- ✅ Removed non-existent docs link
+- ✅ Changed Pricing to Get Started
+
+**Files Changed**:
+- `components/Navigation.tsx`
+- `components/Footer.tsx`
+
+---
+
+### v1.1.1 (2025-10-10)
+**Type**: Patch - Documentation
+
+**Changes**:
+- ✅ Added comprehensive versioning system
+- ✅ Created VERSION.md documentation
+- ✅ Updated CLAUDE.md with versioning workflow
+- ✅ Implemented Semantic Versioning (SemVer) strategy
+
+**Files Changed**:
+- `VERSION.md` (new file)
+- `CLAUDE.md`
+
+---
 
 ### v1.1.0 (2025-10-10)
 **Type**: Minor - Bug Fix
