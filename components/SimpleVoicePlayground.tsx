@@ -107,9 +107,16 @@ export default function SimpleVoicePlayground() {
           sum += audioData[i] * audioData[i]
         }
         const rms = Math.sqrt(sum / audioData.length)
+        const rmsNormalized = rms * 100 // Normalize RMS for display
 
         audioChunksRef.current.push(audioData)
-        console.log('[SimpleVoice] Captured audio chunk:', audioData.length, 'samples, RMS:', rms.toFixed(4))
+
+        // Update max level tracker with normalized RMS
+        if (rmsNormalized > maxAudioLevelRef.current) {
+          maxAudioLevelRef.current = rmsNormalized
+        }
+
+        console.log('[SimpleVoice] Captured audio chunk:', audioData.length, 'samples, RMS:', rms.toFixed(4), 'Normalized:', rmsNormalized.toFixed(2))
       }
 
       // Connect audio pipeline
@@ -189,10 +196,37 @@ export default function SimpleVoicePlayground() {
       return
     }
 
-    // Check if audio level was reasonable (lowered threshold from 1 to 0.1)
-    if (maxLevel < 0.1) {
+    // Check recording duration (minimum 0.5 seconds of audio at 16kHz = 8000 samples)
+    const totalSamples = audioChunksRef.current.reduce((acc, chunk) => acc + chunk.length, 0)
+    const durationSeconds = totalSamples / (audioContextRef.current?.sampleRate || 16000)
+
+    console.log('[SimpleVoice] Recording duration:', durationSeconds.toFixed(2), 'seconds')
+
+    if (durationSeconds < 0.5) {
+      console.error('[SimpleVoice] Recording too short:', durationSeconds, 'seconds')
+      setError('Recording too short. Please hold the button longer while speaking.')
+      setAudioLevel(0)
+      audioLevelRef.current = 0
+      maxAudioLevelRef.current = 0
+      audioChunksRef.current = []
+      return
+    }
+
+    // Check if audio level was reasonable (threshold of 1.0 for normalized RMS)
+    // Note: maxLevel is now normalized (RMS * 100), so values like 5-50 are typical for speech
+    if (maxLevel < 1.0) {
       console.error('[SimpleVoice] WARNING: Max audio level was very low:', maxLevel)
-      setError('Audio level is too low. Please speak louder and closer to your microphone.')
+      setError('No audio detected. Please check your microphone and speak much louder.')
+      setAudioLevel(0)
+      audioLevelRef.current = 0
+      maxAudioLevelRef.current = 0
+      audioChunksRef.current = []
+      return
+    }
+
+    if (maxLevel < 5.0) {
+      console.error('[SimpleVoice] WARNING: Audio level was too low:', maxLevel)
+      setError('Audio level is too low. Please speak much louder and move closer to your microphone.')
       setAudioLevel(0)
       audioLevelRef.current = 0
       maxAudioLevelRef.current = 0
@@ -775,15 +809,18 @@ export default function SimpleVoicePlayground() {
                   {isRecording && (
                     <div className="mt-2">
                       <div className="text-xs text-gray-500 mb-1">
-                        Audio Level: {audioLevel.toFixed(1)} {audioLevel < 1 ? '⚠️ TOO LOW!' : audioLevel < 10 ? '🔉' : '🔊'}
+                        Audio Level: {audioLevel.toFixed(1)} {audioLevel < 5 ? '🔴 SPEAK LOUDER!' : audioLevel < 15 ? '🟡 Speak up' : '🟢 Good!'}
                       </div>
                       <div className="w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all ${
-                            audioLevel < 1 ? 'bg-red-500' : audioLevel < 10 ? 'bg-yellow-500' : 'bg-green-500'
+                            audioLevel < 5 ? 'bg-red-500' : audioLevel < 15 ? 'bg-yellow-500' : 'bg-green-500'
                           }`}
                           style={{ width: `${Math.min(100, (audioLevel / 50) * 100)}%` }}
                         />
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {audioLevel < 5 ? 'Move closer to microphone!' : audioLevel < 15 ? 'A bit louder would be better' : 'Perfect! Keep speaking'}
                       </div>
                     </div>
                   )}
