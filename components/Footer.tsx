@@ -5,17 +5,31 @@ import Image from 'next/image'
 
 export default function Footer() {
   const footerLinks = {
-    Product: ['Features', 'Pricing', 'Use Cases', 'Demo', 'API Docs'],
-    Company: ['About', 'Blog', 'Careers', 'Press', 'Partners'],
-    Resources: ['Documentation', 'Tutorials', 'Support', 'Community', 'Status'],
-    Legal: ['Privacy', 'Terms', 'Security', 'Compliance', 'Cookies'],
+    Product: [
+      { name: 'Features', href: '#features' },
+      { name: 'Try Demo', href: '#playground' },
+      { name: 'Get Started', href: '#pricing' },
+    ],
+    Company: [
+      { name: 'About', href: '#' },
+      { name: 'Contact', href: 'mailto:contact@voicebridgeai.com' },
+    ],
+    Resources: [
+      { name: 'Support', href: 'mailto:support@voicebridgeai.com' },
+      { name: 'GitHub', href: 'https://github.com/bgash22/voicebridge-ai-website' },
+    ],
+    Legal: [
+      { name: 'Privacy Policy', href: '#' },
+      { name: 'Terms of Service', href: '#' },
+    ],
   }
 
   const socialLinks = [
-    { name: 'Twitter', icon: '𝕏', href: '#' },
-    { name: 'LinkedIn', icon: 'in', href: '#' },
-    { name: 'GitHub', icon: 'GH', href: '#' },
-    { name: 'Discord', icon: 'DC', href: '#' },
+    { name: 'GitHub', icon: 'GH', href: 'https://github.com/bgash22/voicebridge-ai-website' },
+    // Add your social media links here:
+    // { name: 'Twitter', icon: '𝕏', href: 'https://twitter.com/yourhandle' },
+    // { name: 'LinkedIn', icon: 'in', href: 'https://linkedin.com/company/yourcompany' },
+    // { name: 'Discord', icon: 'DC', href: 'https://discord.gg/yourinvite' },
   ]
 
   return (
@@ -43,8 +57,11 @@ export default function Footer() {
                 <motion.a
                   key={social.name}
                   href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, y: -2 }}
                   className="w-10 h-10 glass-morphism rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                  aria-label={social.name}
                 >
                   {social.icon}
                 </motion.a>
@@ -58,12 +75,14 @@ export default function Footer() {
               <h3 className="text-white font-semibold mb-4">{category}</h3>
               <ul className="space-y-2">
                 {links.map((link) => (
-                  <li key={link}>
+                  <li key={link.name}>
                     <a
-                      href="#"
+                      href={link.href}
+                      target={link.href.startsWith('http') ? '_blank' : undefined}
+                      rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
-                      {link}
+                      {link.name}
                     </a>
                   </li>
                 ))}

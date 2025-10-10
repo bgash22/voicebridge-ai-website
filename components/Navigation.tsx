@@ -10,8 +10,7 @@ export default function Navigation() {
   const navLinks = [
     { name: 'Features', href: '#features' },
     { name: 'Playground', href: '#playground' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'Docs', href: '#docs' },
+    { name: 'Get Started', href: '#pricing' },
   ]
 
   return (
@@ -51,13 +50,14 @@ export default function Navigation() {
                 {link.name}
               </motion.a>
             ))}
-            <motion.button
+            <motion.a
+              href="#pricing"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-primary-500/50 transition-all"
             >
               Get Started
-            </motion.button>
+            </motion.a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -110,9 +110,13 @@ export default function Navigation() {
                 {link.name}
               </a>
             ))}
-            <button className="w-full px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-semibold">
+            <a
+              href="#pricing"
+              onClick={() => setIsOpen(false)}
+              className="block w-full px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-semibold text-center"
+            >
               Get Started
-            </button>
+            </a>
           </div>
         </motion.div>
       )}
