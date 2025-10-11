@@ -128,8 +128,13 @@ export async function POST(request: NextRequest) {
     if (aiMessage.function_call) {
       console.log('[Chat] Function call requested:', aiMessage.function_call.name)
 
+      // Get the host from the request to build the API URL
+      const host = request.headers.get('host') || 'localhost:3000'
+      const protocol = host.includes('localhost') ? 'http' : 'https'
+      const apiUrl = `${protocol}://${host}/api/functions`
+
       // Call the function via our API
-      const functionResult = await fetch('http://localhost:3000/api/functions', {
+      const functionResult = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
