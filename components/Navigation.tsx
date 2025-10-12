@@ -3,14 +3,26 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Image from 'next/image'
+import { useLanguage } from '@/lib/LanguageContext'
+import { LanguageCode } from '@/lib/translations'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const { language, setLanguage, t } = useLanguage()
+
+  const languages = [
+    { code: 'EN' as LanguageCode, name: 'English', flag: '🇬🇧' },
+    { code: 'AR' as LanguageCode, name: 'العربية', flag: '🇸🇦' },
+    { code: 'ES' as LanguageCode, name: 'Español', flag: '🇪🇸' },
+    { code: 'FR' as LanguageCode, name: 'Français', flag: '🇫🇷' },
+    { code: 'ZH' as LanguageCode, name: '中文', flag: '🇨🇳' },
+  ]
 
   const navLinks = [
-    { name: 'Features', href: '#features' },
-    { name: 'Playground', href: '#playground' },
-    { name: 'Get Started', href: '#pricing' },
+    { name: t.nav.features, href: '#features' },
+    { name: t.nav.playground, href: '#playground' },
+    { name: t.nav.getStarted, href: '#pricing' },
   ]
 
   return (
@@ -50,13 +62,60 @@ export default function Navigation() {
                 {link.name}
               </motion.a>
             ))}
+
+            {/* Language Selector */}
+            <div className="relative">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                onClick={() => setLangMenuOpen(!langMenuOpen)}
+                className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/5"
+              >
+                <span>{languages.find(l => l.code === language)?.flag}</span>
+                <span className="font-medium">{language}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.button>
+
+              {/* Language Dropdown */}
+              {langMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full mt-2 right-0 glass-morphism rounded-lg shadow-xl border border-white/10 py-2 min-w-[160px] z-50"
+                >
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code)
+                        setLangMenuOpen(false)
+                      }}
+                      className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-white/10 transition-colors ${
+                        language === lang.code ? 'text-primary-400' : 'text-gray-300'
+                      }`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span className="font-medium">{lang.name}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </div>
+
             <motion.a
               href="#pricing"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-primary-500/50 transition-all"
             >
-              Get Started
+              {t.nav.getStarted}
             </motion.a>
           </div>
 
@@ -110,12 +169,34 @@ export default function Navigation() {
                 {link.name}
               </a>
             ))}
+
+            {/* Mobile Language Selector */}
+            <div className="py-2 border-t border-white/10 mt-3 pt-3">
+              <div className="text-gray-400 text-sm mb-2">Language</div>
+              <div className="flex flex-wrap gap-2">
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                      language === lang.code
+                        ? 'bg-primary-500/20 text-primary-400 border border-primary-500/50'
+                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    }`}
+                  >
+                    <span>{lang.flag}</span>
+                    <span className="text-sm font-medium">{lang.code}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <a
               href="#pricing"
               onClick={() => setIsOpen(false)}
               className="block w-full px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-semibold text-center"
             >
-              Get Started
+              {t.nav.getStarted}
             </a>
           </div>
         </motion.div>

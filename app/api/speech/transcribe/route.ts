@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const audioFile = formData.get('audio') as Blob
+    const language = (formData.get('language') as string) || 'en'
 
     if (!audioFile) {
       console.error('[Transcribe] No audio file in request')
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Transcribe] Audio file size:', audioFile.size, 'bytes, type:', audioFile.type)
+    console.log('[Transcribe] Language:', language, '- Using model:', language === 'en' ? 'nova-2' : 'whisper-large')
 
     // Check if audio file is too small (likely empty/silent)
     if (audioFile.size < 1000) {
@@ -41,14 +43,21 @@ export async function POST(request: NextRequest) {
 
     console.log('[Transcribe] Content-Type:', contentType)
 
-    // Build Deepgram URL - let Deepgram auto-detect format
+    // Build Deepgram URL
+    // Use Whisper for non-English languages (better multilingual support)
+    // Use Nova-2 for English (faster and with smart formatting)
+    const isEnglish = language === 'en'
+
     const deepgramParams = new URLSearchParams({
-      model: 'nova-2',
-      smart_format: 'true',
-      language: 'en',
-      punctuate: 'true'
-      // Remove encoding/sample_rate - let Deepgram auto-detect from file
+      model: isEnglish ? 'nova-2' : 'whisper-large',
+      language: language
     })
+
+    // Only add smart_format and punctuate for Nova models (English)
+    if (isEnglish) {
+      deepgramParams.append('smart_format', 'true')
+      deepgramParams.append('punctuate', 'true')
+    }
 
     const deepgramUrl = `https://api.deepgram.com/v1/listen?${deepgramParams.toString()}`
     console.log('[Transcribe] Deepgram URL:', deepgramUrl)

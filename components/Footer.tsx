@@ -2,30 +2,31 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function Footer() {
+  const { t } = useLanguage()
+
   const footerLinks = {
-    Product: [
-      { name: 'Features', href: '#features' },
-      { name: 'Try Demo', href: '#playground' },
-      { name: 'Get Started', href: '#pricing' },
+    [t.footer.product]: [
+      { name: t.footer.features, href: '#features' },
+      { name: t.footer.tryDemo, href: '#playground' },
+      { name: t.footer.getStarted, href: '#pricing' },
     ],
-    Company: [
-      { name: 'About', href: '#' },
-      { name: 'Contact', href: 'mailto:contact@aivoicebridge.com' },
+    [t.footer.company]: [
+      { name: t.footer.about, href: '#' },
+      { name: t.footer.contact, href: 'mailto:contact@aivoicebridge.com' },
     ],
-    Resources: [
-      { name: 'Support', href: 'mailto:support@aivoicebridge.com' },
-      { name: 'GitHub', href: 'https://github.com/bgash22/voicebridge-ai-website' },
+    [t.footer.resources]: [
+      { name: t.footer.support, href: 'mailto:support@aivoicebridge.com' },
     ],
-    Legal: [
-      { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },
+    [t.footer.legal]: [
+      { name: t.footer.privacyPolicy, href: '#' },
+      { name: t.footer.termsOfService, href: '#' },
     ],
   }
 
   const socialLinks = [
-    { name: 'GitHub', icon: 'GH', href: 'https://github.com/bgash22/voicebridge-ai-website' },
     // Add your social media links here:
     // { name: 'Twitter', icon: '𝕏', href: 'https://twitter.com/yourhandle' },
     // { name: 'LinkedIn', icon: 'in', href: 'https://linkedin.com/company/yourcompany' },
@@ -50,7 +51,7 @@ export default function Footer() {
               <span className="text-white font-bold text-xl">VoiceBridge AI</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-sm">
-              Transform customer interactions with intelligent voice AI. Real-time, multilingual, and always available.
+              {t.footer.tagline}
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
@@ -95,17 +96,17 @@ export default function Footer() {
         <div className="pt-8 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} Voice Bridge AI. All rights reserved.
+              © {new Date().getFullYear()} Voice Bridge AI. {t.footer.rights}
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
               <a href="#" className="hover:text-white transition-colors">
-                Privacy Policy
+                {t.footer.privacyPolicy}
               </a>
               <a href="#" className="hover:text-white transition-colors">
-                Terms of Service
+                {t.footer.termsOfService}
               </a>
               <a href="#" className="hover:text-white transition-colors">
-                Cookie Settings
+                {t.footer.cookieSettings}
               </a>
             </div>
           </div>

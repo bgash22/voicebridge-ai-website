@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useState, useRef } from 'react'
 import { useInView } from 'framer-motion'
+import { useLanguage } from '@/lib/LanguageContext'
 
 interface Message {
   role: 'user' | 'ai'
@@ -11,6 +12,7 @@ interface Message {
 }
 
 export default function SimpleVoicePlayground() {
+  const { t, language } = useLanguage()
   const [isRecording, setIsRecording] = useState(false)
   const [conversation, setConversation] = useState<Message[]>([])
   const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | null>(null)
@@ -32,6 +34,18 @@ export default function SimpleVoicePlayground() {
   const maxAudioLevelRef = useRef<number>(0)
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true })
+
+  // Map language codes to Deepgram format (uppercase to lowercase)
+  const getDeepgramLanguage = (lang: string): string => {
+    const languageMap: { [key: string]: string } = {
+      'EN': 'en',
+      'AR': 'ar',
+      'ES': 'es',
+      'FR': 'fr',
+      'ZH': 'zh'
+    }
+    return languageMap[lang] || 'en'
+  }
 
   // Start recording user voice using Web Audio API
   const startRecording = async () => {
@@ -445,6 +459,7 @@ export default function SimpleVoicePlayground() {
     try {
       const formData = new FormData()
       formData.append('audio', audioBlob)
+      formData.append('language', getDeepgramLanguage(language))
 
       const response = await fetch('/api/speech/transcribe', {
         method: 'POST',
@@ -491,7 +506,8 @@ export default function SimpleVoicePlayground() {
         body: JSON.stringify({
           message: userMessage,
           serviceType: serviceType || 'pharmacy',
-          conversationHistory: conversation
+          conversationHistory: conversation,
+          language: getDeepgramLanguage(language)
         })
       })
 
@@ -507,29 +523,42 @@ export default function SimpleVoicePlayground() {
     }
   }
 
-  // Speak text using Deepgram TTS
+  // Speak text using browser's Web Speech API (supports all languages)
   const speakText = async (text: string) => {
     try {
-      const response = await fetch('/api/speech/synthesize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+      // Use Web Speech API for text-to-speech (browser built-in, supports multiple languages)
+      const synth = window.speechSynthesis
+      const utterance = new SpeechSynthesisUtterance(text)
+
+      // Map language codes to speech synthesis language codes
+      const langMap: { [key: string]: string } = {
+        'EN': 'en-US',
+        'AR': 'ar-SA',
+        'ES': 'es-ES',
+        'FR': 'fr-FR',
+        'ZH': 'zh-CN'
+      }
+      utterance.lang = langMap[language] || 'en-US'
+      utterance.rate = 1.0
+      utterance.pitch = 1.0
+      utterance.volume = 1.0
+
+      console.log('[SimpleVoice] Speaking text in language:', utterance.lang)
+
+      // Speak the text
+      synth.speak(utterance)
+
+      // Wait for speech to complete
+      return new Promise<void>((resolve) => {
+        utterance.onend = () => {
+          console.log('[SimpleVoice] Speech synthesis complete')
+          resolve()
+        }
+        utterance.onerror = (error) => {
+          console.error('[SimpleVoice] Speech synthesis error:', error)
+          resolve()
+        }
       })
-
-      if (!response.ok) {
-        throw new Error('Speech synthesis failed')
-      }
-
-      const audioBlob = await response.blob()
-      const audioUrl = URL.createObjectURL(audioBlob)
-      const audio = new Audio(audioUrl)
-
-      await audio.play()
-
-      // Clean up after playing
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl)
-      }
     } catch (error) {
       console.error('[SimpleVoice] Speech synthesis error:', error)
     }
@@ -621,10 +650,10 @@ export default function SimpleVoicePlayground() {
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-gradient">
-            Try It Live
+            {t.playground.title}
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Experience real AI voice interaction. Choose a service and start talking.
+            {t.playground.subtitle}
           </p>
         </motion.div>
 
@@ -644,7 +673,7 @@ export default function SimpleVoicePlayground() {
             <div className="text-center space-y-6">
               <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
                 <p className="text-sm text-yellow-200 mb-3">
-                  ⚠️ <strong>Microphone Test:</strong> Before starting, test your microphone!
+                  ⚠️ <strong>{t.playground.micTest}</strong> {t.playground.micTestBefore}
                 </p>
 
                 <motion.button
@@ -654,14 +683,14 @@ export default function SimpleVoicePlayground() {
                   disabled={isTesting}
                   className="mb-3 px-6 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isTesting ? '🎤 Testing... Speak now!' : '🎤 Test Microphone (5 sec)'}
+                  {isTesting ? t.playground.testMicButtonActive : t.playground.testMicButton}
                 </motion.button>
 
                 {isTesting && (
                   <div className="mt-3">
                     <div className="text-sm font-semibold mb-2">
-                      Audio Level: {testAudioLevel.toFixed(1)} {' '}
-                      {testAudioLevel < 1 ? '🔴 NO SOUND!' : testAudioLevel < 10 ? '🟡 Quiet' : '🟢 Good!'}
+                      {t.playground.audioLevel} {testAudioLevel.toFixed(1)} {' '}
+                      {testAudioLevel < 1 ? t.playground.noSound : testAudioLevel < 10 ? t.playground.quiet : t.playground.good}
                     </div>
                     <div className="w-full h-4 bg-gray-700 rounded-full overflow-hidden">
                       <div
@@ -672,12 +701,12 @@ export default function SimpleVoicePlayground() {
                       />
                     </div>
                     <p className="text-xs text-yellow-300 mt-2">
-                      Speak loudly - the bar should turn green!
+                      {t.playground.speakLoudly}
                     </p>
                   </div>
                 )}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-6">Choose a Service</h3>
+              <h3 className="text-2xl font-bold text-white mb-6">{t.playground.chooseService}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -686,8 +715,8 @@ export default function SimpleVoicePlayground() {
                   className="p-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl transition-shadow"
                 >
                   <div className="text-5xl mb-3">💊</div>
-                  <div>Pharmacy Services</div>
-                  <div className="text-sm opacity-80 mt-2">Ask about medications, prices, and place orders</div>
+                  <div>{t.playground.pharmacyTitle}</div>
+                  <div className="text-sm opacity-80 mt-2">{t.playground.pharmacyDesc}</div>
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -696,8 +725,8 @@ export default function SimpleVoicePlayground() {
                   className="p-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl transition-shadow"
                 >
                   <div className="text-5xl mb-3">📦</div>
-                  <div>DHL Tracking</div>
-                  <div className="text-sm opacity-80 mt-2">Track your packages and shipments</div>
+                  <div>{t.playground.dhlTitle}</div>
+                  <div className="text-sm opacity-80 mt-2">{t.playground.dhlDesc}</div>
                 </motion.button>
               </div>
             </div>
@@ -708,7 +737,7 @@ export default function SimpleVoicePlayground() {
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm text-gray-400">Ready</span>
+                  <span className="text-sm text-gray-400">{t.playground.ready}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {lastRecording && (
@@ -717,14 +746,14 @@ export default function SimpleVoicePlayground() {
                       className="text-xs text-primary-400 hover:text-primary-300 transition-colors px-2 py-1 rounded border border-primary-500/30 hover:border-primary-500"
                       title="Download last recording for debugging"
                     >
-                      📥 Download Recording
+                      {t.playground.downloadRecording}
                     </button>
                   )}
                   <button
                     onClick={disconnect}
                     className="text-sm text-gray-400 hover:text-white transition-colors"
                   >
-                    ← Change Service
+                    {t.playground.changeService}
                   </button>
                 </div>
               </div>
@@ -734,11 +763,11 @@ export default function SimpleVoicePlayground() {
                   <div className="h-full flex items-center justify-center text-gray-500">
                     <div className="text-center">
                       <div className="text-6xl mb-4">🎤</div>
-                      <p>Click and hold the microphone to speak...</p>
+                      <p>{t.playground.clickToSpeak}</p>
                       <p className="text-sm mt-2">
                         {serviceType === 'pharmacy'
-                          ? 'Try: "What is the price of aspirin?"'
-                          : 'Try: "Track package 1234567890"'}
+                          ? t.playground.pharmacyExample
+                          : t.playground.dhlExample}
                       </p>
                     </div>
                   </div>
@@ -802,14 +831,14 @@ export default function SimpleVoicePlayground() {
 
                 <div className="text-center">
                   <div className="text-gray-400 font-medium">
-                    {isProcessing && 'Processing...'}
-                    {!isProcessing && isRecording && 'Listening... Release when done'}
-                    {!isProcessing && !isRecording && 'Press and hold to speak'}
+                    {isProcessing && t.playground.processing}
+                    {!isProcessing && isRecording && t.playground.listening}
+                    {!isProcessing && !isRecording && t.playground.pressToSpeak}
                   </div>
                   {isRecording && (
                     <div className="mt-2">
                       <div className="text-xs text-gray-500 mb-1">
-                        Audio Level: {audioLevel.toFixed(1)} {audioLevel < 5 ? '🔴 SPEAK LOUDER!' : audioLevel < 15 ? '🟡 Speak up' : '🟢 Good!'}
+                        {t.playground.audioLevel} {audioLevel.toFixed(1)} {audioLevel < 5 ? t.playground.speakLouder : audioLevel < 15 ? t.playground.speakUp : t.playground.good}
                       </div>
                       <div className="w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
                         <div
@@ -820,12 +849,12 @@ export default function SimpleVoicePlayground() {
                         />
                       </div>
                       <div className="text-xs text-gray-400 mt-1">
-                        {audioLevel < 5 ? 'Move closer to microphone!' : audioLevel < 15 ? 'A bit louder would be better' : 'Perfect! Keep speaking'}
+                        {audioLevel < 5 ? t.playground.moveCloser : audioLevel < 15 ? t.playground.bitLouder : t.playground.perfect}
                       </div>
                     </div>
                   )}
                   <div className="text-xs text-gray-500 mt-1">
-                    {serviceType === 'pharmacy' ? 'Pharmacy Assistant' : 'DHL Tracking Assistant'}
+                    {serviceType === 'pharmacy' ? t.playground.pharmacyAssistant : t.playground.dhlAssistant}
                   </div>
                 </div>
               </div>

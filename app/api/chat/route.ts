@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, serviceType, conversationHistory } = await request.json()
+    const { message, serviceType, conversationHistory, language } = await request.json()
 
     if (!message) {
       return NextResponse.json({ error: 'No message provided' }, { status: 400 })
@@ -14,13 +14,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
     }
 
+    // Map language codes to full language names for AI prompt
+    const languageMap: { [key: string]: string } = {
+      'en': 'English',
+      'ar': 'Arabic',
+      'es': 'Spanish',
+      'fr': 'French',
+      'zh': 'Chinese'
+    }
+    const languageName = languageMap[language || 'en'] || 'English'
+    const languageInstruction = language && language !== 'en'
+      ? ` IMPORTANT: Respond in ${languageName} language only. All your responses must be in ${languageName}.`
+      : ''
+
     // Build conversation messages
     const messages = [
       {
         role: 'system',
         content: serviceType === 'pharmacy'
-          ? 'You are a professional pharmacy assistant helping customers with their medication needs. Your role is to: 1) Answer questions about medications (prices, availability, descriptions), 2) Help customers place orders for medications, 3) Look up existing order status, 4) Provide clear, helpful, and professional service. You have access to tools to: get_drug_info (look up medication details), place_order (create new medication orders), lookup_order (check order status by ID). IMPORTANT: ALWAYS stay in the pharmacy assistant role. If a customer asks about topics unrelated to pharmacy/medications, politely redirect them back to pharmacy services. When customers ask unclear questions, ask clarifying questions to understand their medication needs. Be concise but helpful. Never provide medical advice - only factual information about medications in the database.'
-          : 'You are a professional DHL package tracking assistant. Your role is to help customers track their shipments and packages. You have access to the track_shipment function. Always ask for tracking numbers in a clear format (10-14 digit numbers). Be helpful and professional.'
+          ? `You are a professional pharmacy assistant helping customers with their medication needs. Your role is to: 1) Answer questions about medications (prices, availability, descriptions), 2) Help customers place orders for medications, 3) Look up existing order status, 4) Provide clear, helpful, and professional service. You have access to tools to: get_drug_info (look up medication details), place_order (create new medication orders), lookup_order (check order status by ID). IMPORTANT: ALWAYS stay in the pharmacy assistant role. If a customer asks about topics unrelated to pharmacy/medications, politely redirect them back to pharmacy services. When customers ask unclear questions, ask clarifying questions to understand their medication needs. Be concise but helpful. Never provide medical advice - only factual information about medications in the database.${languageInstruction}`
+          : `You are a professional DHL package tracking assistant. Your role is to help customers track their shipments and packages. You have access to the track_shipment function. Always ask for tracking numbers in a clear format (10-14 digit numbers). Be helpful and professional.${languageInstruction}`
       },
       ...conversationHistory.map((msg: any) => ({
         role: msg.role === 'user' ? 'user' : 'assistant',

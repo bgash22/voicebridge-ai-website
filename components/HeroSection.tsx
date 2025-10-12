@@ -2,10 +2,13 @@
 
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import { useLanguage } from '@/lib/LanguageContext'
 
 const Hero3D = dynamic(() => import('./Hero3D'), { ssr: false })
 
 export default function HeroSection() {
+  const { t } = useLanguage()
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-black via-gray-900 to-black">
       {/* 3D Background */}
@@ -27,7 +30,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2 }}
           >
-            AI Voice Bridge
+            {t.hero.title}
           </motion.h1>
 
           <motion.p
@@ -36,10 +39,7 @@ export default function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Transform customer interactions with{' '}
-            <span className="text-primary-400 font-semibold">intelligent voice AI</span>
-            <br />
-            Real-time, multilingual, always available
+            {t.hero.subtitle}
           </motion.p>
 
           <motion.div
@@ -54,7 +54,7 @@ export default function HeroSection() {
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(14, 165, 233, 0.6)' }}
               whileTap={{ scale: 0.95 }}
             >
-              Start Free Trial
+              {t.hero.getStarted}
             </motion.a>
 
             <motion.a
@@ -63,7 +63,7 @@ export default function HeroSection() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Schedule Demo
+              {t.hero.watchDemo}
             </motion.a>
           </motion.div>
 
@@ -75,17 +75,17 @@ export default function HeroSection() {
           >
             <div className="text-center">
               <div className="text-3xl font-bold text-white">99.9%</div>
-              <div className="text-sm">Uptime</div>
+              <div className="text-sm">{t.hero.stats.availability}</div>
             </div>
             <div className="w-px h-12 bg-gray-700" />
             <div className="text-center">
-              <div className="text-3xl font-bold text-white">50+</div>
-              <div className="text-sm">Languages</div>
+              <div className="text-3xl font-bold text-white">95%</div>
+              <div className="text-sm">{t.hero.stats.satisfaction}</div>
             </div>
             <div className="w-px h-12 bg-gray-700" />
             <div className="text-center">
-              <div className="text-3xl font-bold text-white">&lt;100ms</div>
-              <div className="text-sm">Latency</div>
+              <div className="text-3xl font-bold text-white">40%</div>
+              <div className="text-sm">{t.hero.stats.reduction}</div>
             </div>
           </motion.div>
         </motion.div>

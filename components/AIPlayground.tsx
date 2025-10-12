@@ -4,8 +4,10 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AIPlayground() {
+  const { t } = useLanguage()
   const [message, setMessage] = useState('')
   const [conversation, setConversation] = useState<Array<{ role: 'user' | 'ai'; text: string }>>([])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -22,13 +24,7 @@ export default function AIPlayground() {
 
     // Simulate AI response
     setTimeout(() => {
-      const responses = [
-        "I understand your query. I'm processing this with advanced natural language understanding.",
-        "Great question! Let me help you with that using our AI voice technology.",
-        "I can assist you with that. Our multilingual AI can handle this in over 50 languages.",
-        "Thank you for reaching out. I'm analyzing your request in real-time.",
-      ]
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)]
+      const randomResponse = t.playground.aiResponses[Math.floor(Math.random() * t.playground.aiResponses.length)]
       setConversation((prev) => [...prev, { role: 'ai', text: randomResponse }])
       setIsProcessing(false)
     }, 1500)
@@ -53,10 +49,10 @@ export default function AIPlayground() {
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-gradient">
-            Try It Live
+            {t.playground.title}
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Experience the power of AI Voice Bridge. Start a conversation and see the magic happen.
+            {t.playground.subtitle}
           </p>
         </motion.div>
 
@@ -72,7 +68,7 @@ export default function AIPlayground() {
               <div className="h-full flex items-center justify-center text-gray-500">
                 <div className="text-center">
                   <div className="text-6xl mb-4">💬</div>
-                  <p>Start a conversation with our AI...</p>
+                  <p>{t.playground.startConversation}</p>
                 </div>
               </div>
             ) : (
@@ -122,7 +118,7 @@ export default function AIPlayground() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Type your message..."
+              placeholder={t.playground.inputPlaceholder}
               className="flex-1 bg-black/30 rounded-xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
             />
             <motion.button
@@ -132,7 +128,7 @@ export default function AIPlayground() {
               disabled={isProcessing}
               className="px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-primary-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send
+              {t.playground.sendButton}
             </motion.button>
           </div>
 

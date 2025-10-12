@@ -3,47 +3,19 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { useLanguage } from '@/lib/LanguageContext'
 
-const features = [
-  {
-    icon: '🎤',
-    title: 'Natural Voice AI',
-    description: 'Human-like conversations powered by advanced neural networks. Understand context, emotion, and intent.',
-    gradient: 'from-blue-500 to-cyan-500',
-  },
-  {
-    icon: '🌍',
-    title: 'Multilingual Support',
-    description: 'Communicate in 50+ languages with real-time translation. Break language barriers effortlessly.',
-    gradient: 'from-purple-500 to-pink-500',
-  },
-  {
-    icon: '⚡',
-    title: 'Real-time Processing',
-    description: 'Lightning-fast response times under 100ms. No delays, just seamless conversations.',
-    gradient: 'from-orange-500 to-red-500',
-  },
-  {
-    icon: '📊',
-    title: 'Advanced Analytics',
-    description: 'Deep insights into customer interactions. Track sentiment, topics, and performance metrics.',
-    gradient: 'from-green-500 to-emerald-500',
-  },
-  {
-    icon: '🔒',
-    title: 'Enterprise Security',
-    description: 'Bank-level encryption and compliance. Your data is safe with us, always.',
-    gradient: 'from-indigo-500 to-purple-500',
-  },
-  {
-    icon: '🔄',
-    title: 'Seamless Integration',
-    description: 'Easy API integration with existing systems. Get started in minutes, not months.',
-    gradient: 'from-pink-500 to-rose-500',
-  },
+const featureIcons = ['🎤', '🌍', '⚡', '📊', '🔒', '🔄']
+const featureGradients = [
+  'from-blue-500 to-cyan-500',
+  'from-purple-500 to-pink-500',
+  'from-orange-500 to-red-500',
+  'from-green-500 to-emerald-500',
+  'from-indigo-500 to-purple-500',
+  'from-pink-500 to-rose-500',
 ]
 
-function FeatureCard({ feature, index }: { feature: typeof features[0]; index: number }) {
+function FeatureCard({ feature, gradient, icon, index }: { feature: { title: string; description: string }; gradient: string; icon: string; index: number }) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -58,21 +30,21 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
     >
       <div className="glass-morphism rounded-2xl p-8 h-full hover:bg-white/10 transition-all duration-300">
         {/* Gradient Border Effect */}
-        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${feature.gradient} opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`} />
+        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`} />
 
         <motion.div
           className="text-6xl mb-4"
           whileHover={{ scale: 1.2, rotate: 10 }}
           transition={{ type: 'spring', stiffness: 300 }}
         >
-          {feature.icon}
+          {icon}
         </motion.div>
 
         <h3 className="text-2xl font-bold mb-3 text-white">{feature.title}</h3>
         <p className="text-gray-400 leading-relaxed">{feature.description}</p>
 
         {/* Hover Glow Effect */}
-        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-2xl`} />
+        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-2xl`} />
       </div>
     </motion.div>
   )
@@ -81,6 +53,7 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
 export default function FeaturesSection() {
   const titleRef = useRef(null)
   const titleInView = useInView(titleRef, { once: true })
+  const { t } = useLanguage()
 
   return (
     <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black via-gray-900 to-black relative overflow-hidden">
@@ -99,16 +72,22 @@ export default function FeaturesSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-gradient">
-            Powerful Features
+            {t.features.title}
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Everything you need to revolutionize customer communication
+            {t.features.subtitle}
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <FeatureCard key={index} feature={feature} index={index} />
+          {t.features.items.map((feature, index) => (
+            <FeatureCard
+              key={index}
+              feature={feature}
+              gradient={featureGradients[index]}
+              icon={featureIcons[index]}
+              index={index}
+            />
           ))}
         </div>
       </div>

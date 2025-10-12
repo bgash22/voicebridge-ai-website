@@ -3,10 +3,12 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function CTASection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true })
+  const { t } = useLanguage()
 
   return (
     <section
@@ -35,7 +37,7 @@ export default function CTASection() {
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Ready to Transform Your Business?
+            {t.cta.title}
           </motion.h2>
 
           <motion.p
@@ -44,8 +46,7 @@ export default function CTASection() {
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            Join thousands of companies using AI Voice Bridge to deliver exceptional customer experiences.
-            Start your free trial today - no credit card required.
+            {t.cta.subtitle}
           </motion.p>
 
           <motion.div
@@ -60,7 +61,7 @@ export default function CTASection() {
               whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(14, 165, 233, 0.7)' }}
               whileTap={{ scale: 0.95 }}
             >
-              Get Started Free
+              {t.cta.getStarted}
             </motion.a>
 
             <motion.a
@@ -69,7 +70,7 @@ export default function CTASection() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Schedule Demo
+              {t.cta.scheduleDemo}
             </motion.a>
           </motion.div>
 
@@ -83,19 +84,19 @@ export default function CTASection() {
               <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <span>Free 14-day trial</span>
+              <span>{t.cta.features.trial}</span>
             </div>
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <span>No credit card required</span>
+              <span>{t.cta.features.noCard}</span>
             </div>
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <span>Cancel anytime</span>
+              <span>{t.cta.features.cancel}</span>
             </div>
           </motion.div>
         </motion.div>
