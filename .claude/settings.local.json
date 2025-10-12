@@ -37,7 +37,8 @@
       "Bash(timeout:*)",
       "mcp__ide__getDiagnostics",
       "WebSearch",
-      "WebFetch(domain:developers.deepgram.com)"
+      "WebFetch(domain:developers.deepgram.com)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
