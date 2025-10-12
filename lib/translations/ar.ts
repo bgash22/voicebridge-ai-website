@@ -78,6 +78,14 @@ export const ar = {
     perfect: 'ممتاز! استمر في الحديث',
     pharmacyAssistant: 'مساعد الصيدلية',
     dhlAssistant: 'مساعد تتبع DHL',
+    startConversation: 'ابدأ المحادثة...',
+    inputPlaceholder: 'اكتب رسالتك...',
+    sendButton: 'إرسال',
+    aiResponses: [
+      "يمكنني مساعدتك في ذلك! ما الذي تريد معرفته أيضاً؟",
+      "سؤال رائع! دعني أساعدك في ذلك.",
+      "أنا هنا للمساعدة. ما هو سؤالك التالي؟",
+    ],
   },
   cta: {
     title: 'هل أنت مستعد لتحويل عملك؟',

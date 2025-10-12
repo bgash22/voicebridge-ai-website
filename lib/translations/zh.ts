@@ -78,6 +78,14 @@ export const zh = {
     perfect: '完美！继续说话',
     pharmacyAssistant: '药房助手',
     dhlAssistant: 'DHL追踪助手',
+    startConversation: '开始对话...',
+    inputPlaceholder: '输入您的消息...',
+    sendButton: '发送',
+    aiResponses: [
+      "我可以帮您！您还想了解什么？",
+      "好问题！让我帮您。",
+      "我在这里帮忙。您的下一个问题是什么？",
+    ],
   },
   cta: {
     title: '准备好转变您的业务了吗？',

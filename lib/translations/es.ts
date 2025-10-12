@@ -78,6 +78,14 @@ export const es = {
     perfect: '¡Perfecto! Sigue hablando',
     pharmacyAssistant: 'Asistente de Farmacia',
     dhlAssistant: 'Asistente de Rastreo DHL',
+    startConversation: 'Iniciar una conversación...',
+    inputPlaceholder: 'Escribe tu mensaje...',
+    sendButton: 'Enviar',
+    aiResponses: [
+      "¡Puedo ayudarte con eso! ¿Qué más te gustaría saber?",
+      "¡Gran pregunta! Permíteme ayudarte con eso.",
+      "Estoy aquí para ayudar. ¿Cuál es tu siguiente pregunta?",
+    ],
   },
   cta: {
     title: '¿Listo para Transformar tu Negocio?',

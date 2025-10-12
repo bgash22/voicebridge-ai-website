@@ -26,7 +26,7 @@ export default function Footer() {
     ],
   }
 
-  const socialLinks = [
+  const socialLinks: { name: string; icon: string; href: string }[] = [
     // Add your social media links here:
     // { name: 'Twitter', icon: '𝕏', href: 'https://twitter.com/yourhandle' },
     // { name: 'LinkedIn', icon: 'in', href: 'https://linkedin.com/company/yourcompany' },
