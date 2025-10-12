@@ -176,11 +176,19 @@ git checkout -b rollback-to-v1.0.0 v1.0.0
 - **Always use version tags** for tracking changes
 
 ### Vercel (Production)
-- Live URL: https://voicebridge-m5nuewcc5-bader-alshehris-projects.vercel.app
+- **Custom Domain**: https://aivoicebridge.com
+- Vercel URL: https://voicebridge-m5nuewcc5-bader-alshehris-projects.vercel.app
 - Dashboard: https://vercel.com/bader-alshehris-projects/voicebridge-ai
 - Vercel CLI installed and authenticated
 - Auto-deploys on push to main branch
 - Connected to GitHub repository
+
+#### Custom Domain Setup (Already Configured)
+The custom domain `aivoicebridge.com` is configured in Vercel:
+1. Domain added in Vercel Dashboard → Project Settings → Domains
+2. DNS records configured to point to Vercel
+3. SSL certificate automatically provisioned by Vercel
+4. Both www and non-www versions supported
 
 ### Deployment Commands
 ```bash
@@ -207,10 +215,9 @@ vercel logs
 - Deployed to Vercel and connected to GitHub
 
 ### Future Considerations
-- OpenAI API integration for live AI responses (env var: `OPENAI_API_KEY`)
 - Restore full Three.js 3D implementation in Hero3D
 - Add user authentication flows with Supabase
-- Consider custom domain (e.g., voicebridge.ai)
+- Analytics and monitoring integration
 
 ### Performance
 - Next.js handles code splitting automatically
