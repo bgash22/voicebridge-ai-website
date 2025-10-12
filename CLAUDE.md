@@ -34,9 +34,13 @@ npm run lint
 
 ### Directory Structure
 - `app/` - Next.js App Router pages and layouts
+  - `api/` - API routes (chat, speech transcription, speech synthesis, functions)
 - `components/` - Reusable React components (all client components use 'use client')
-- `lib/` - Utility functions and service integrations (e.g., Supabase client)
-- `public/` - Static assets
+- `lib/` - Utility functions and service integrations
+  - `LanguageContext.tsx` - Language state management
+  - `translations/` - Translation files for all supported languages (en, ar, es, fr, zh)
+  - `supabase.ts` - Supabase client configuration
+- `public/` - Static assets (logo, images)
 
 ### Component Architecture
 All major sections are separate components imported into the main page:
@@ -63,7 +67,209 @@ The main page (`app/page.tsx`) assembles these components in order.
 ### State Management
 - Client components use React hooks (useState, useRef)
 - Framer Motion's `useInView` hook for scroll-triggered animations
+- React Context API for language state management (see Internationalization below)
 - No global state management library (Redux, Zustand) currently used
+
+### Internationalization (i18n)
+
+**Supported Languages**: English (EN), Arabic (AR), Spanish (ES), French (FR), Chinese (ZH)
+
+The application uses React Context API for managing language state and translations across all components.
+
+#### Architecture Overview
+
+```
+lib/
+├── LanguageContext.tsx          # Language context provider & hook
+└── translations/
+    ├── en.ts                    # English translations
+    ├── ar.ts                    # Arabic translations
+    ├── es.ts                    # Spanish translations
+    ├── fr.ts                    # French translations
+    └── zh.ts                    # Chinese translations
+```
+
+#### How It Works
+
+1. **Language Context** (`lib/LanguageContext.tsx`):
+   - Provides global language state using React Context
+   - Stores current language in localStorage for persistence
+   - Exports `useLanguage()` hook for accessing translations
+   - Returns current `language`, `setLanguage()` function, and `t` translation object
+
+2. **Translation Files** (`lib/translations/*.ts`):
+   - Each file exports a const with all translations for that language
+   - Structure: `{ nav, hero, features, playground, cta, footer }`
+   - All files must have identical structure for type safety
+
+3. **Components Usage**:
+   ```typescript
+   import { useLanguage } from '@/lib/LanguageContext'
+
+   const MyComponent = () => {
+     const { t, language, setLanguage } = useLanguage()
+
+     return <h1>{t.hero.title}</h1>
+   }
+   ```
+
+#### API Language Support
+
+1. **Speech-to-Text** (`app/api/speech/transcribe/route.ts`):
+   - Accepts `language` parameter in FormData
+   - Uses Deepgram **Whisper-large** model for non-English languages
+   - Uses Deepgram **Nova-2** model for English (faster with smart formatting)
+   - Language codes: `en`, `ar`, `es`, `fr`, `zh`
+
+2. **AI Chat** (`app/api/chat/route.ts`):
+   - Accepts `language` parameter in JSON request
+   - Adds language-specific instructions to OpenAI system prompt
+   - AI responds in the user's selected language
+   - Example: "IMPORTANT: Respond in Arabic language only..."
+
+3. **Text-to-Speech** (`components/SimpleVoicePlayground.tsx`):
+   - Uses browser's **Web Speech API** (supports all languages)
+   - Language mapping: EN→en-US, AR→ar-SA, ES→es-ES, FR→fr-FR, ZH→zh-CN
+   - Replaced Deepgram TTS (only supported EN/ES)
+
+#### Adding a New Language
+
+Follow these steps to add a new language (e.g., German - DE):
+
+**Step 1: Create Translation File**
+
+Create `lib/translations/de.ts`:
+
+```typescript
+export const de = {
+  nav: {
+    features: 'Funktionen',
+    playground: 'Spielplatz',
+    getStarted: 'Loslegen',
+  },
+  hero: {
+    title: '...',
+    subtitle: '...',
+    // ... copy structure from en.ts
+  },
+  // ... all other sections
+}
+```
+
+**Step 2: Update Language Context**
+
+In `lib/LanguageContext.tsx`:
+
+```typescript
+import { de } from './translations/de'
+
+type Language = 'EN' | 'AR' | 'ES' | 'FR' | 'ZH' | 'DE'
+
+const translations = {
+  EN: en,
+  AR: ar,
+  ES: es,
+  FR: fr,
+  ZH: zh,
+  DE: de,  // Add here
+}
+```
+
+**Step 3: Update Navigation Component**
+
+In `components/Navigation.tsx`, add the language option:
+
+```typescript
+const languages: Language[] = ['EN', 'AR', 'ES', 'FR', 'ZH', 'DE']
+```
+
+**Step 4: Update API Language Mapping**
+
+In `app/api/speech/transcribe/route.ts`:
+
+```typescript
+const getDeepgramLanguage = (lang: string): string => {
+  const languageMap: { [key: string]: string } = {
+    'EN': 'en',
+    'AR': 'ar',
+    'ES': 'es',
+    'FR': 'fr',
+    'ZH': 'zh',
+    'DE': 'de',  // Add here
+  }
+  return languageMap[lang] || 'en'
+}
+```
+
+In `app/api/chat/route.ts`:
+
+```typescript
+const languageMap: { [key: string]: string } = {
+  'en': 'English',
+  'ar': 'Arabic',
+  'es': 'Spanish',
+  'fr': 'French',
+  'zh': 'Chinese',
+  'de': 'German',  // Add here
+}
+```
+
+In `components/SimpleVoicePlayground.tsx`:
+
+```typescript
+const langMap: { [key: string]: string } = {
+  'EN': 'en-US',
+  'AR': 'ar-SA',
+  'ES': 'es-ES',
+  'FR': 'fr-FR',
+  'ZH': 'zh-CN',
+  'DE': 'de-DE',  // Add here for TTS
+}
+```
+
+**Step 5: Test the New Language**
+
+1. Build the project: `npm run build`
+2. Check TypeScript errors (all translation files must have same structure)
+3. Test in browser:
+   - Language selector shows new language
+   - All UI text translates correctly
+   - Voice transcription works in new language
+   - AI responds in new language
+   - TTS speaks in new language
+
+#### Translation Structure
+
+All translation files must include these sections:
+
+```typescript
+{
+  nav: { features, playground, getStarted },
+  hero: { title, subtitle, watchDemo, getStarted, stats: { ... } },
+  features: { title, subtitle, items: [...] },
+  playground: {
+    title, subtitle, micTest, testMicButton, chooseService,
+    pharmacyTitle, pharmacyDesc, dhlTitle, dhlDesc,
+    processing, listening, audioLevel, ...
+    startConversation, inputPlaceholder, sendButton, aiResponses: [...]
+  },
+  cta: { title, subtitle, getStarted, scheduleDemo, features: { ... } },
+  footer: { tagline, product, features, company, resources, legal, ... }
+}
+```
+
+#### Important Notes
+
+- **TypeScript Type Safety**: All translation files must have identical structure
+- **Empty Arrays**: Always provide type annotation (e.g., `const arr: Type[] = []`)
+- **Language Codes**:
+  - UI uses uppercase: EN, AR, ES, FR, ZH
+  - APIs use lowercase: en, ar, es, fr, zh
+  - TTS uses locale codes: en-US, ar-SA, es-ES, fr-FR, zh-CN
+- **RTL Support**: Arabic text automatically displays right-to-left (browser default)
+- **Model Selection**:
+  - English: Deepgram Nova-2 (faster, smart formatting)
+  - Other languages: Deepgram Whisper-large (90+ languages)
 
 ### Authentication
 Supabase integration is set up in `lib/supabase.ts` with helper functions:
@@ -206,13 +412,21 @@ vercel logs
 
 ### Known Issues
 - Hero3D component is currently simplified (3D background disabled)
-- AIPlayground uses mock responses, not connected to real AI API
+- SimpleVoicePlayground is the active component; AIPlayground component exists but is not used
 
 ### Recent Changes
+- **v1.2.0**: Added complete multilingual support (EN, AR, ES, FR, ZH)
+  - Created React Context for language state management
+  - Implemented translation files for all 5 languages
+  - Updated Speech-to-Text to use Deepgram Whisper for non-English languages
+  - AI chat now responds in user's selected language via OpenAI
+  - Replaced Deepgram TTS with Web Speech API for broader language support
+  - Added language selector to navigation bar
+- **v1.1.5**: Fixed voice transcription audio level detection
+- Added custom domain aivoicebridge.com
 - Fixed CSS errors in `app/globals.css` (removed invalid Tailwind classes)
 - Added VB logo (`public/logo.png` with transparent background)
 - Updated color theme to cyan/teal to match brand logo
-- Deployed to Vercel and connected to GitHub
 
 ### Future Considerations
 - Restore full Three.js 3D implementation in Hero3D
