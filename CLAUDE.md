@@ -114,9 +114,11 @@ The `Hero3D.tsx` component is currently simplified (using gradient background). 
 - **MINOR** (v1.1.0): New features, non-breaking changes
 - **PATCH** (v1.1.1): Bug fixes, small improvements
 
-**Current Version**: `v1.1.0`
+**Current Version**: `v1.2.0`
 
 **Version History**:
+- `v1.2.0` - Complete multilingual support (EN, AR, ES, FR, ZH)
+- `v1.1.5` - Fixed voice transcription audio level detection
 - `v1.1.0` - Fixed voice recording audio capture issue
 - `v1.0.0` - Initial VoiceBridge AI landing page
 

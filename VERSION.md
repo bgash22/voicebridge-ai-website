@@ -12,9 +12,44 @@ We use **Semantic Versioning** (SemVer) for this project:
 
 ## Current Version
 
-**Latest**: `v1.1.5` - Fixed voice transcription audio level detection
+**Latest**: `v1.2.0` - Complete multilingual support with 5 languages
 
 ## Version History
+
+### v1.2.0 (2025-10-13)
+**Type**: Minor - New Feature
+
+**Changes**:
+- ✅ Added complete multilingual support for 5 languages (English, Arabic, Spanish, French, Chinese)
+- ✅ Voice transcription in all languages using Deepgram Whisper
+- ✅ AI chat responses in user's selected language via OpenAI
+- ✅ Text-to-speech in all languages using Web Speech API
+- ✅ Complete UI translations for playground section
+- ✅ Language selector in navigation bar
+- ✅ Language-aware system prompts for AI assistant
+- ✅ Removed GitHub links from footer
+
+**Technical Implementation**:
+- Updated transcribe API to use Whisper model for non-English languages (nova-2 for English)
+- Added language parameter to chat API with multilingual prompts
+- Replaced Deepgram TTS with browser Web Speech API for broader language support
+- Created translation system with React Context API
+- Added translation files: en.ts, ar.ts, es.ts, fr.ts, zh.ts
+
+**Commit**: `6d158fc`
+**Author**: Eng. Bader Alshehri
+**Files Changed**: 19 files (893 insertions, 155 deletions)
+
+**Key Files**:
+- `app/api/speech/transcribe/route.ts` - Whisper integration for multilingual STT
+- `app/api/chat/route.ts` - Language-aware AI responses
+- `components/SimpleVoicePlayground.tsx` - Web Speech API for TTS
+- `lib/LanguageContext.tsx` - Language state management
+- `lib/translations/*` - Translation files for all languages
+- `components/Navigation.tsx` - Language selector
+- `components/Footer.tsx` - Removed GitHub links
+
+---
 
 ### v1.1.5 (2025-10-10)
 **Type**: Patch - Bug Fix
