@@ -1087,7 +1087,10 @@ export default function SimpleVoicePlayground() {
                     </div>
                   )}
                   <div className="text-xs text-gray-500 mt-1">
-                    {serviceType === 'pharmacy' ? t.playground.pharmacyAssistant : t.playground.dhlAssistant}
+                    {serviceType === 'pharmacy' && t.playground.pharmacyAssistant}
+                    {serviceType === 'dhl' && t.playground.dhlAssistant}
+                    {serviceType === 'banking' && t.playground.bankingAssistant}
+                    {serviceType === 'clinic' && t.playground.clinicAssistant}
                   </div>
                 </div>
               </div>
