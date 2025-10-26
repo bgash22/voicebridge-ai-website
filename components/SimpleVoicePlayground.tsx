@@ -23,7 +23,7 @@ export default function SimpleVoicePlayground() {
   const { t, language } = useLanguage()
   const [isRecording, setIsRecording] = useState(false)
   const [conversation, setConversation] = useState<Message[]>([])
-  const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | 'banking' | 'clinic' | null>(null)
+  const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | 'banking' | 'clinic' | 'carRental' | 'hotel' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
@@ -662,7 +662,9 @@ export default function SimpleVoicePlayground() {
       'pharmacy': 'Pharmacy Assistant',
       'dhl': 'DHL Tracking',
       'banking': 'Banking Assistant',
-      'clinic': 'Medical Clinic Assistant'
+      'clinic': 'Medical Clinic Assistant',
+      'carRental': 'Car Rental',
+      'hotel': 'Hotel Reservation'
     }
     const header = `VoiceBridge AI Conversation Transcript\nService: ${serviceNames[serviceType as keyof typeof serviceNames]}\nLanguage: ${language}\nDate: ${new Date().toLocaleDateString()}\n${'='.repeat(60)}\n\n`
     const content = header + lines
@@ -714,7 +716,9 @@ export default function SimpleVoicePlayground() {
       'pharmacy': 'pharmacy assistant',
       'dhl': 'DHL tracking system',
       'banking': 'banking assistant',
-      'clinic': 'medical clinic assistant'
+      'clinic': 'medical clinic assistant',
+      'carRental': 'car rental assistant',
+      'hotel': 'hotel reservation assistant'
     }
     const summary = userMessages.length > 0
       ? `Customer interacted with ${serviceLabels[serviceType as keyof typeof serviceLabels]} in ${language} language. Total ${conversation.length} messages exchanged.`
@@ -749,6 +753,20 @@ export default function SimpleVoicePlayground() {
       }
       if (conversation.some(m => m.text.toLowerCase().includes('doctor') || m.text.toLowerCase().includes('available'))) {
         actionItems.push('Check doctor availability')
+      }
+    } else if (serviceType === 'carRental') {
+      if (conversation.some(m => m.text.toLowerCase().includes('rent') || m.text.toLowerCase().includes('car') || m.text.toLowerCase().includes('vehicle'))) {
+        actionItems.push('Process car rental booking')
+      }
+      if (conversation.some(m => m.text.toLowerCase().includes('available') || m.text.toLowerCase().includes('price'))) {
+        actionItems.push('Check vehicle availability and pricing')
+      }
+    } else if (serviceType === 'hotel') {
+      if (conversation.some(m => m.text.toLowerCase().includes('book') || m.text.toLowerCase().includes('room') || m.text.toLowerCase().includes('reservation'))) {
+        actionItems.push('Process hotel reservation')
+      }
+      if (conversation.some(m => m.text.toLowerCase().includes('available') || m.text.toLowerCase().includes('price') || m.text.toLowerCase().includes('rate'))) {
+        actionItems.push('Check room availability and rates')
       }
     }
 
@@ -840,7 +858,7 @@ export default function SimpleVoicePlayground() {
                 )}
               </div>
               <h3 className="text-2xl font-bold text-white mb-6">{t.playground.chooseService}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -880,6 +898,26 @@ export default function SimpleVoicePlayground() {
                   <div className="text-5xl mb-3">🏥</div>
                   <div>{t.playground.clinicTitle}</div>
                   <div className="text-sm opacity-80 mt-2">{t.playground.clinicDesc}</div>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setServiceType('carRental')}
+                  className="p-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl transition-shadow"
+                >
+                  <div className="text-5xl mb-3">🚗</div>
+                  <div>{t.playground.carRentalTitle}</div>
+                  <div className="text-sm opacity-80 mt-2">{t.playground.carRentalDesc}</div>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setServiceType('hotel')}
+                  className="p-8 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl transition-shadow"
+                >
+                  <div className="text-5xl mb-3">🏨</div>
+                  <div>{t.playground.hotelTitle}</div>
+                  <div className="text-sm opacity-80 mt-2">{t.playground.hotelDesc}</div>
                 </motion.button>
               </div>
             </div>
@@ -929,6 +967,8 @@ export default function SimpleVoicePlayground() {
                         {serviceType === 'dhl' && t.playground.dhlExample}
                         {serviceType === 'banking' && t.playground.bankingExample}
                         {serviceType === 'clinic' && t.playground.clinicExample}
+                        {serviceType === 'carRental' && t.playground.carRentalExample}
+                        {serviceType === 'hotel' && t.playground.hotelExample}
                       </p>
                     </div>
                   </div>
@@ -1091,6 +1131,8 @@ export default function SimpleVoicePlayground() {
                     {serviceType === 'dhl' && t.playground.dhlAssistant}
                     {serviceType === 'banking' && t.playground.bankingAssistant}
                     {serviceType === 'clinic' && t.playground.clinicAssistant}
+                    {serviceType === 'carRental' && t.playground.carRentalAssistant}
+                    {serviceType === 'hotel' && t.playground.hotelAssistant}
                   </div>
                 </div>
               </div>
