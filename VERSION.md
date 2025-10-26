@@ -12,9 +12,40 @@ We use **Semantic Versioning** (SemVer) for this project:
 
 ## Current Version
 
-**Latest**: `v1.3.0` - Extended multilingual support (8 languages) and added Banking/Clinic showcases
+**Latest**: `v1.3.1` - Stable version with Banking/Clinic fix (recommended for rollback)
 
 ## Version History
+
+### v1.3.1 (2025-10-27) ⭐ **STABLE ROLLBACK POINT**
+**Type**: Patch - Bug Fix
+
+**Changes**:
+- ✅ Fixed assistant name display for Banking and Clinic services
+- ✅ Changed ternary operator to conditional rendering for all 4 service types
+- ✅ Banking now correctly shows "Banking Assistant" instead of "DHL Tracking Assistant"
+- ✅ Clinic now correctly shows "Medical Clinic Assistant" instead of "DHL Tracking Assistant"
+
+**Technical Implementation**:
+- Updated SimpleVoicePlayground.tsx line 1090-1094
+- Replaced `{serviceType === 'pharmacy' ? t.playground.pharmacyAssistant : t.playground.dhlAssistant}`
+- With individual conditional checks for all 4 services
+
+**Commit**: `fae26e6`
+**Author**: Eng. Bader Alshehri
+**Files Changed**: 1 file (4 insertions, 1 deletion)
+
+**Key Files**:
+- `components/SimpleVoicePlayground.tsx` (lines 1090-1094)
+
+**Rollback Usage**:
+```bash
+# To rollback to this stable version in the future:
+git checkout v1.3.1
+# Or create a branch from this version:
+git checkout -b rollback-to-stable v1.3.1
+```
+
+---
 
 ### v1.3.0 (2025-10-26)
 **Type**: Minor - New Features
