@@ -23,7 +23,7 @@ export default function SimpleVoicePlayground() {
   const { t, language } = useLanguage()
   const [isRecording, setIsRecording] = useState(false)
   const [conversation, setConversation] = useState<Message[]>([])
-  const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | null>(null)
+  const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | 'banking' | 'clinic' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
@@ -51,7 +51,10 @@ export default function SimpleVoicePlayground() {
       'AR': 'ar',
       'ES': 'es',
       'FR': 'fr',
-      'ZH': 'zh'
+      'ZH': 'zh',
+      'DE': 'de',
+      'TR': 'tr',
+      'HI': 'hi'
     }
     return languageMap[lang] || 'en'
   }
@@ -545,7 +548,10 @@ export default function SimpleVoicePlayground() {
         'AR': 'ar-SA',
         'ES': 'es-ES',
         'FR': 'fr-FR',
-        'ZH': 'zh-CN'
+        'ZH': 'zh-CN',
+        'DE': 'de-DE',
+        'TR': 'tr-TR',
+        'HI': 'hi-IN'
       }
       utterance.lang = langMap[language] || 'en-US'
       utterance.rate = 1.0
@@ -652,7 +658,13 @@ export default function SimpleVoicePlayground() {
       return `[${time}] ${role}: ${msg.text}`
     }).join('\n')
 
-    const header = `VoiceBridge AI Conversation Transcript\nService: ${serviceType === 'pharmacy' ? 'Pharmacy Assistant' : 'DHL Tracking'}\nLanguage: ${language}\nDate: ${new Date().toLocaleDateString()}\n${'='.repeat(60)}\n\n`
+    const serviceNames = {
+      'pharmacy': 'Pharmacy Assistant',
+      'dhl': 'DHL Tracking',
+      'banking': 'Banking Assistant',
+      'clinic': 'Medical Clinic Assistant'
+    }
+    const header = `VoiceBridge AI Conversation Transcript\nService: ${serviceNames[serviceType as keyof typeof serviceNames]}\nLanguage: ${language}\nDate: ${new Date().toLocaleDateString()}\n${'='.repeat(60)}\n\n`
     const content = header + lines
 
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
@@ -698,8 +710,14 @@ export default function SimpleVoicePlayground() {
     else if (negativeCount > positiveCount + 1) sentiment = 'negative'
 
     // Generate simple summary
+    const serviceLabels = {
+      'pharmacy': 'pharmacy assistant',
+      'dhl': 'DHL tracking system',
+      'banking': 'banking assistant',
+      'clinic': 'medical clinic assistant'
+    }
     const summary = userMessages.length > 0
-      ? `Customer interacted with ${serviceType === 'pharmacy' ? 'pharmacy assistant' : 'DHL tracking system'} in ${language} language. Total ${conversation.length} messages exchanged.`
+      ? `Customer interacted with ${serviceLabels[serviceType as keyof typeof serviceLabels]} in ${language} language. Total ${conversation.length} messages exchanged.`
       : 'No conversation data available.'
 
     // Extract potential action items (simplified)
@@ -717,6 +735,20 @@ export default function SimpleVoicePlayground() {
       }
       if (conversation.some(m => m.text.toLowerCase().includes('delay') || m.text.toLowerCase().includes('late'))) {
         actionItems.push('Investigate delivery delay')
+      }
+    } else if (serviceType === 'banking') {
+      if (conversation.some(m => m.text.toLowerCase().includes('balance') || m.text.toLowerCase().includes('account'))) {
+        actionItems.push('Provide account balance information')
+      }
+      if (conversation.some(m => m.text.toLowerCase().includes('transfer') || m.text.toLowerCase().includes('send money'))) {
+        actionItems.push('Process fund transfer')
+      }
+    } else if (serviceType === 'clinic') {
+      if (conversation.some(m => m.text.toLowerCase().includes('appointment') || m.text.toLowerCase().includes('schedule'))) {
+        actionItems.push('Schedule medical appointment')
+      }
+      if (conversation.some(m => m.text.toLowerCase().includes('doctor') || m.text.toLowerCase().includes('available'))) {
+        actionItems.push('Check doctor availability')
       }
     }
 
@@ -829,6 +861,26 @@ export default function SimpleVoicePlayground() {
                   <div>{t.playground.dhlTitle}</div>
                   <div className="text-sm opacity-80 mt-2">{t.playground.dhlDesc}</div>
                 </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setServiceType('banking')}
+                  className="p-8 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl transition-shadow"
+                >
+                  <div className="text-5xl mb-3">🏦</div>
+                  <div>{t.playground.bankingTitle}</div>
+                  <div className="text-sm opacity-80 mt-2">{t.playground.bankingDesc}</div>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setServiceType('clinic')}
+                  className="p-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white font-semibold text-lg hover:shadow-xl transition-shadow"
+                >
+                  <div className="text-5xl mb-3">🏥</div>
+                  <div>{t.playground.clinicTitle}</div>
+                  <div className="text-sm opacity-80 mt-2">{t.playground.clinicDesc}</div>
+                </motion.button>
               </div>
             </div>
           )}
@@ -873,9 +925,10 @@ export default function SimpleVoicePlayground() {
                       <div className="text-6xl mb-4">🎤</div>
                       <p>{t.playground.clickToSpeak}</p>
                       <p className="text-sm mt-2">
-                        {serviceType === 'pharmacy'
-                          ? t.playground.pharmacyExample
-                          : t.playground.dhlExample}
+                        {serviceType === 'pharmacy' && t.playground.pharmacyExample}
+                        {serviceType === 'dhl' && t.playground.dhlExample}
+                        {serviceType === 'banking' && t.playground.bankingExample}
+                        {serviceType === 'clinic' && t.playground.clinicExample}
                       </p>
                     </div>
                   </div>

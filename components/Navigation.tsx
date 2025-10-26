@@ -17,6 +17,9 @@ export default function Navigation() {
     { code: 'ES' as LanguageCode, name: 'Español', flag: '🇪🇸' },
     { code: 'FR' as LanguageCode, name: 'Français', flag: '🇫🇷' },
     { code: 'ZH' as LanguageCode, name: '中文', flag: '🇨🇳' },
+    { code: 'DE' as LanguageCode, name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'TR' as LanguageCode, name: 'Türkçe', flag: '🇹🇷' },
+    { code: 'HI' as LanguageCode, name: 'हिन्दी', flag: '🇮🇳' },
   ]
 
   const navLinks = [
