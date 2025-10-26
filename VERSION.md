@@ -12,9 +12,41 @@ We use **Semantic Versioning** (SemVer) for this project:
 
 ## Current Version
 
-**Latest**: `v1.3.1` - Stable version with Banking/Clinic fix (recommended for rollback)
+**Latest**: `v1.4.0` - 6 showcase services with multilingual support
 
 ## Version History
+
+### v1.4.0 (2025-10-27)
+**Type**: Minor - New Features
+
+**Changes**:
+- ✅ Added Car Rental showcase service (vehicle bookings, availability checks, rental inquiries)
+- ✅ Added Hotel Reservation showcase service (room bookings, availability checks, hotel services)
+- ✅ Extended service selection to 6 options: Pharmacy, DHL, Banking, Clinic, Car Rental, Hotel
+- ✅ Updated all 8 language files with carRental and hotel translations
+- ✅ Added service-specific system prompts for Car Rental and Hotel in chat API
+- ✅ Updated transcript analyzer to handle Car Rental and Hotel action items
+- ✅ Enhanced UI with 3-column service grid (lg:grid-cols-3) for better visual distribution
+- ✅ Added distinct colors: Orange for Car Rental (🚗), Pink for Hotel (🏨)
+
+**Technical Implementation**:
+- Extended SimpleVoicePlayground serviceType to support 6 services
+- Added systemPrompts for carRental and hotel in chat API route
+- Updated saveScript function with car rental and hotel service name mapping
+- Enhanced analyzeTranscript with Car Rental/Hotel-specific action item detection
+- Added carRentalTitle/Desc/Example/Assistant and hotelTitle/Desc/Example/Assistant keys to all 8 translations
+- Changed service grid layout from md:grid-cols-2 to md:grid-cols-2 lg:grid-cols-3
+
+**Commit**: `caef07f`
+**Author**: Eng. Bader Alshehri
+**Files Changed**: 10 files (113 insertions, 5 deletions)
+
+**Key Files**:
+- `lib/translations/en.ts, ar.ts, es.ts, fr.ts, zh.ts, de.ts, tr.ts, hi.ts` - Added carRental and hotel keys
+- `components/SimpleVoicePlayground.tsx` - Extended to support 6 services (lines 26, 661-668, 715-722, 757-771, 860-922, 945-952, 1109-1116)
+- `app/api/chat/route.ts` - Added carRental and hotel system prompts (lines 39-40)
+
+---
 
 ### v1.3.1 (2025-10-27) ⭐ **STABLE ROLLBACK POINT**
 **Type**: Patch - Bug Fix
