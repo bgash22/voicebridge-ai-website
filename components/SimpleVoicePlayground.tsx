@@ -11,6 +11,14 @@ interface Message {
   timestamp: Date
 }
 
+interface Analysis {
+  totalTurns: number
+  talkRatioUser: number
+  sentiment: 'positive' | 'neutral' | 'negative'
+  summary: string
+  actionItems: string[]
+}
+
 export default function SimpleVoicePlayground() {
   const { t, language } = useLanguage()
   const [isRecording, setIsRecording] = useState(false)
@@ -18,6 +26,7 @@ export default function SimpleVoicePlayground() {
   const [serviceType, setServiceType] = useState<'pharmacy' | 'dhl' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [lastRecording, setLastRecording] = useState<Blob | null>(null)
   const [isTesting, setIsTesting] = useState(false)
   const [testAudioLevel, setTestAudioLevel] = useState(0)
@@ -630,6 +639,98 @@ export default function SimpleVoicePlayground() {
     setConversation([])
     setError(null)
     setLastRecording(null)
+    setAnalysis(null)
+  }
+
+  // Save conversation script
+  const saveScript = () => {
+    if (conversation.length === 0) return
+
+    const lines = conversation.map(msg => {
+      const time = msg.timestamp.toLocaleTimeString()
+      const role = msg.role === 'user' ? 'USER' : 'AI'
+      return `[${time}] ${role}: ${msg.text}`
+    }).join('\n')
+
+    const header = `VoiceBridge AI Conversation Transcript\nService: ${serviceType === 'pharmacy' ? 'Pharmacy Assistant' : 'DHL Tracking'}\nLanguage: ${language}\nDate: ${new Date().toLocaleDateString()}\n${'='.repeat(60)}\n\n`
+    const content = header + lines
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `voicebridge_transcript_${new Date().toISOString().slice(0, 10)}_${Date.now()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // Analyze transcript (client-side basic analysis)
+  const analyzeTranscript = () => {
+    if (conversation.length === 0) {
+      setAnalysis(null)
+      return
+    }
+
+    const userMessages = conversation.filter(m => m.role === 'user')
+    const aiMessages = conversation.filter(m => m.role === 'ai')
+
+    const words = (text: string) => text.split(/\s+/).filter(Boolean).length
+    const userWords = userMessages.reduce((sum, m) => sum + words(m.text), 0)
+    const totalWords = conversation.reduce((sum, m) => sum + words(m.text), 0)
+
+    // Simple sentiment analysis using keyword matching
+    const negativeWords = ['problem', 'issue', 'wrong', 'broken', 'bad', 'delay', 'late', 'angry', 'complaint', 'refund', 'cancel']
+    const positiveWords = ['good', 'great', 'thanks', 'thank', 'excellent', 'perfect', 'appreciate', 'helpful']
+
+    let negativeCount = 0
+    let positiveCount = 0
+
+    conversation.forEach(msg => {
+      const lowerText = msg.text.toLowerCase()
+      negativeCount += negativeWords.filter(word => lowerText.includes(word)).length
+      positiveCount += positiveWords.filter(word => lowerText.includes(word)).length
+    })
+
+    let sentiment: 'positive' | 'neutral' | 'negative' = 'neutral'
+    if (positiveCount > negativeCount + 1) sentiment = 'positive'
+    else if (negativeCount > positiveCount + 1) sentiment = 'negative'
+
+    // Generate simple summary
+    const summary = userMessages.length > 0
+      ? `Customer interacted with ${serviceType === 'pharmacy' ? 'pharmacy assistant' : 'DHL tracking system'} in ${language} language. Total ${conversation.length} messages exchanged.`
+      : 'No conversation data available.'
+
+    // Extract potential action items (simplified)
+    const actionItems: string[] = []
+    if (serviceType === 'pharmacy') {
+      if (conversation.some(m => m.text.toLowerCase().includes('price') || m.text.toLowerCase().includes('cost'))) {
+        actionItems.push('Provide pricing information')
+      }
+      if (conversation.some(m => m.text.toLowerCase().includes('prescription') || m.text.toLowerCase().includes('refill'))) {
+        actionItems.push('Process prescription refill')
+      }
+    } else if (serviceType === 'dhl') {
+      if (conversation.some(m => m.text.toLowerCase().includes('track') || m.text.toLowerCase().includes('package'))) {
+        actionItems.push('Provide tracking information')
+      }
+      if (conversation.some(m => m.text.toLowerCase().includes('delay') || m.text.toLowerCase().includes('late'))) {
+        actionItems.push('Investigate delivery delay')
+      }
+    }
+
+    if (actionItems.length === 0) {
+      actionItems.push('No specific actions identified')
+    }
+
+    setAnalysis({
+      totalTurns: conversation.length,
+      talkRatioUser: totalWords > 0 ? userWords / totalWords : 0,
+      sentiment,
+      summary,
+      actionItems
+    })
   }
 
   return (
@@ -734,6 +835,13 @@ export default function SimpleVoicePlayground() {
 
           {serviceType && (
             <>
+              {/* Privacy Notice */}
+              <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <p className="text-xs text-blue-200 text-center">
+                  🔒 {t.playground.privacyNotice}
+                </p>
+              </div>
+
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500" />
@@ -810,6 +918,78 @@ export default function SimpleVoicePlayground() {
                   </div>
                 )}
               </div>
+
+              {/* Action Buttons: Save Script & Analyze */}
+              {conversation.length > 0 && (
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={saveScript}
+                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all"
+                  >
+                    {t.playground.saveScript}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={analyzeTranscript}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium rounded-lg hover:shadow-lg transition-all"
+                  >
+                    {t.playground.analyzeTranscript}
+                  </motion.button>
+                </div>
+              )}
+
+              {/* Analysis Results */}
+              {analysis && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-5 bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl"
+                >
+                  <h4 className="text-lg font-bold text-purple-300 mb-4">{t.playground.analysis.title}</h4>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="bg-black/30 p-3 rounded-lg">
+                      <div className="text-xs text-gray-400 mb-1">{t.playground.analysis.totalTurns}</div>
+                      <div className="text-2xl font-bold text-white">{analysis.totalTurns}</div>
+                    </div>
+                    <div className="bg-black/30 p-3 rounded-lg">
+                      <div className="text-xs text-gray-400 mb-1">{t.playground.analysis.talkRatio}</div>
+                      <div className="text-2xl font-bold text-white">{(analysis.talkRatioUser * 100).toFixed(0)}%</div>
+                    </div>
+                  </div>
+                  <div className="mb-4 bg-black/30 p-3 rounded-lg">
+                    <div className="text-xs text-gray-400 mb-2">{t.playground.analysis.sentiment}</div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        analysis.sentiment === 'positive' ? 'bg-green-500/20 text-green-300' :
+                        analysis.sentiment === 'negative' ? 'bg-red-500/20 text-red-300' :
+                        'bg-gray-500/20 text-gray-300'
+                      }`}>
+                        {analysis.sentiment === 'positive' ? t.playground.analysis.positive :
+                         analysis.sentiment === 'negative' ? t.playground.analysis.negative :
+                         t.playground.analysis.neutral}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <div className="text-sm font-semibold text-gray-300 mb-2">{t.playground.analysis.summary}</div>
+                    <p className="text-sm text-gray-400">{analysis.summary}</p>
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-300 mb-2">{t.playground.analysis.actionItems}</div>
+                    <ul className="space-y-1">
+                      {analysis.actionItems.map((item, idx) => (
+                        <li key={idx} className="text-sm text-gray-400 flex items-start gap-2">
+                          <span className="text-purple-400 mt-0.5">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              )}
 
               <div className="flex items-center justify-center gap-4 mb-6">
                 <motion.button
