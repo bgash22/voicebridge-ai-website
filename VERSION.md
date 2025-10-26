@@ -12,9 +12,44 @@ We use **Semantic Versioning** (SemVer) for this project:
 
 ## Current Version
 
-**Latest**: `v1.2.0` - Complete multilingual support with 5 languages
+**Latest**: `v1.3.0` - Extended multilingual support (8 languages) and added Banking/Clinic showcases
 
 ## Version History
+
+### v1.3.0 (2025-10-26)
+**Type**: Minor - New Features
+
+**Changes**:
+- ✅ Added 3 new languages: German (DE), Turkish (TR), Hindi (HI) - total 8 languages
+- ✅ Added Banking showcase service (balance checks, fund transfers, account inquiries)
+- ✅ Added Clinic showcase service (appointment scheduling, doctor availability, medical inquiries)
+- ✅ Extended service selection to 4 options: Pharmacy, DHL, Banking, Clinic
+- ✅ Updated all 8 language files with banking and clinic translations
+- ✅ Added service-specific system prompts for Banking and Clinic in chat API
+- ✅ Updated transcript analyzer to handle Banking and Clinic action items
+- ✅ Enhanced UI with 2x2 service grid featuring distinct colors and emojis
+
+**Technical Implementation**:
+- Created translation files: de.ts, tr.ts, hi.ts
+- Extended SimpleVoicePlayground serviceType to support 4 services
+- Added systemPrompts object in chat API for all 4 service types
+- Updated saveScript function with service name mapping
+- Enhanced analyzeTranscript with Banking/Clinic-specific action item detection
+- Added bankingTitle/Desc/Example/Assistant and clinicTitle/Desc/Example/Assistant keys to all translations
+
+**Commit**: `e4612f5`
+**Author**: Eng. Bader Alshehri
+**Files Changed**: 12 files (548 insertions, 12 deletions)
+
+**Key Files**:
+- `lib/translations/de.ts, tr.ts, hi.ts` - New language translation files
+- `lib/translations/index.ts` - Added DE, TR, HI exports
+- `lib/translations/en.ts, ar.ts, es.ts, fr.ts, zh.ts` - Added banking/clinic keys
+- `components/Navigation.tsx` - Added DE, TR, HI to language selector
+- `components/SimpleVoicePlayground.tsx` - Extended to support 4 services
+- `app/api/chat/route.ts` - Added banking and clinic system prompts
+
+---
 
 ### v1.2.0 (2025-10-13)
 **Type**: Minor - New Feature
